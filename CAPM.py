@@ -1,9 +1,13 @@
 import streamlit as st
+import re
 import numpy as np
 import pandas as pd
 import yfinance as yf
 from statsmodels.formula.api import ols
-import datetime
+from sklearn.linear_model import LinearRegression
+from datetime import timedelta as tdel, datetime as dt
+from dateutil.relativedelta import relativedelta as rdel
+from Scrape_Treasury_Bond_Data import mean_of_YTMs
 
 country = st.selectbox('Choose a market', ['India', 'US [Work in Progress]'])
 
@@ -15,11 +19,9 @@ if country == 'India':
     names = tickers['NAME OF COMPANY']
     names_mapped = dict(zip(codes, names))
 
-    valid_freq_codes = ['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'ytd', 'max']
-    valid_freq_names = ['1 Day', '5 Days', '1 Month', '3 months', '6 months', '1 Year', '2 Years', '5 Years', '10 Years', 'Year-To-Date', 'Maximum']
+    valid_freq_codes = ['5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y']
+    valid_freq_names = ['5 Days', '1 month', '3 months', '6 months', '1 year', '2 years', '5 years', '10 years']
     freq_mapped = dict(zip(valid_freq_names, valid_freq_codes))
-
-
 
     with col1:
         common_name_of_stock = st.selectbox('Choose a ticker', names)
@@ -27,7 +29,18 @@ if country == 'India':
     with col2:
         freq_name = st.selectbox('Choose a frequency', valid_freq_names)
         freq_code = freq_mapped[freq_name]
+        no_of_periods = int(re.search(r'\d+', freq_name).group())
 
+        if 'Days' in freq_name:
+            starting_date = dt.today()-tdel(days=no_of_periods)
+        elif 'month' in freq_name:
+            starting_date = dt.today()-rdel(months=no_of_periods)
+        elif 'year' in freq_name:
+            starting_date = dt.today()-rdel(years=no_of_periods)
+        
+        starting_date = starting_date.date()
+        starting_date = starting_date.strftime('%d-%m-%Y')
+        st.write(starting_date)
 
     target_ticker = [key for key, val in names_mapped.items() if val==common_name_of_stock][0]
 
@@ -37,7 +50,24 @@ if country == 'India':
         if target_stock_data.shape[0] == 0:
             st.write('Ticker not available on Yahoo Finance. Apologies for the inconvenience!')
         else: 
-            st.write(target_stock_data)
+            target_stock_data = yf.Ticker(target_ticker).history(freq_code)
 
     except:
         st.write('Ticker not available on Yahoo Finance or you may not have a stable internet connection. Apologies for the inconvenience!')
+    
+    nifty = yf.Ticker('^NSEI').history(freq_code)
+
+
+    common_dates = nifty.index.intersection(target_stock_data.index)
+    
+    nifty = nifty.loc[common_dates]
+    target_stock_data = target_stock_data.loc[common_dates]
+
+    nifty_close = nifty['Close'].to_numpy()
+    target_stock_close = target_stock_data['Close'].to_numpy()    
+
+    model = LinearRegression(fit_intercept=False).fit(X=nifty_close.reshape(-1, 1), y=target_stock_close)
+    st.write(mean_of_YTMs(str(starting_date)))
+
+    
+    

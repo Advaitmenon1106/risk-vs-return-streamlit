@@ -5,7 +5,8 @@ def Query_DB(date):
     cur = conn.cursor()
     cur.execute("""SELECT yield 
                       FROM tbill_data 
-                      WHERE tbill_data.date BETWEEN %s AND now();""", (date,))
+                      WHERE tbill_data.date BETWEEN %s AND now() 
+                      ORDER BY date""", (date,))
 
     yields = []
     for res in cur.fetchall():

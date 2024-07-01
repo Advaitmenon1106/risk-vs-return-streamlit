@@ -1,3 +1,5 @@
 Normality.ipynb
 scraping_investing_dotcom.ipynb
 .vscode
+__pycache__
+TBill-10Y.csv

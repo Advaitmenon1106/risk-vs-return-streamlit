@@ -7,7 +7,8 @@ from statsmodels.formula.api import ols
 from sklearn.linear_model import LinearRegression
 from datetime import timedelta as tdel, datetime as dt
 from dateutil.relativedelta import relativedelta as rdel
-from Scrape_Treasury_Bond_Data import mean_of_YTMs
+
+from QueryDB import Query_DB
 
 country = st.selectbox('Choose a market', ['India', 'US [Work in Progress]'])
 
@@ -32,21 +33,18 @@ if country == 'India':
         no_of_periods = int(re.search(r'\d+', freq_name).group())
 
         if 'Days' in freq_name:
-            starting_date = dt.today()-tdel(days=no_of_periods)
+            starting_date = dt.today()-rdel(days=no_of_periods)
         elif 'month' in freq_name:
             starting_date = dt.today()-rdel(months=no_of_periods)
         elif 'year' in freq_name:
             starting_date = dt.today()-rdel(years=no_of_periods)
         
         starting_date = starting_date.date()
-        starting_date = starting_date.strftime('%d-%m-%Y')
-        st.write(starting_date)
 
     target_ticker = [key for key, val in names_mapped.items() if val==common_name_of_stock][0]
 
     try:
         target_stock_data = yf.Ticker(target_ticker).history(freq_code)
-
         if target_stock_data.shape[0] == 0:
             st.write('Ticker not available on Yahoo Finance. Apologies for the inconvenience!')
         else: 
@@ -57,17 +55,23 @@ if country == 'India':
     
     nifty = yf.Ticker('^NSEI').history(freq_code)
 
-
     common_dates = nifty.index.intersection(target_stock_data.index)
     
     nifty = nifty.loc[common_dates]
     target_stock_data = target_stock_data.loc[common_dates]
 
-    nifty_close = nifty['Close'].to_numpy()
-    target_stock_close = target_stock_data['Close'].to_numpy()    
+    nifty_close = nifty['Close']
+    target_stock_close = target_stock_data['Close']
 
-    model = LinearRegression(fit_intercept=False).fit(X=nifty_close.reshape(-1, 1), y=target_stock_close)
-    st.write(mean_of_YTMs(str(starting_date)))
+    nifty_rtns = nifty_close.pct_change().dropna().to_numpy()
+    target_stock_rtns = target_stock_close.pct_change().dropna().to_numpy()
 
+    model = LinearRegression(fit_intercept=False).fit(X=nifty_rtns.reshape(-1, 1), y=target_stock_rtns)
+    beta = model.coef_
+    ytms = np.array(Query_DB(starting_date))
+    ytm_mean = ytms.mean()
+
+    expected_return = ytm_mean + beta*(nifty_rtns.mean()-ytm_mean)
+    st.write(expected_return)
     
     

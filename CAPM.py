@@ -20,8 +20,8 @@ if country == 'India':
     names = tickers['NAME OF COMPANY']
     names_mapped = dict(zip(codes, names))
 
-    valid_freq_codes = ['5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y']
-    valid_freq_names = ['5 Days', '1 month', '3 months', '6 months', '1 year', '2 years', '5 years', '10 years']
+    valid_freq_codes = ['1mo', '3mo', '6mo', '1y', '2y', '5y', '10y']
+    valid_freq_names = ['1 month', '3 months', '6 months', '1 year', '2 years', '5 years', '10 years']
     freq_mapped = dict(zip(valid_freq_names, valid_freq_codes))
 
     with col1:
@@ -69,9 +69,10 @@ if country == 'India':
     model = LinearRegression(fit_intercept=False).fit(X=nifty_rtns.reshape(-1, 1), y=target_stock_rtns)
     beta = model.coef_
     ytms = np.array(Query_DB(starting_date))
-    ytm_mean = ytms.mean()
+    Rf = ytms.mean()
 
-    expected_return = ytm_mean + beta*(nifty_rtns.mean()-ytm_mean)
-    st.write(expected_return)
+    expected_return = Rf + beta*(nifty_rtns.mean()*100-Rf)
+    
+    st.write(pd.DataFrame({'Expected Return': expected_return, 'Mean of the stock return': target_stock_rtns.mean()*100, 'Risk free rate used': Rf, 'Beta of the stock': beta, 'Expected Market Return': nifty_rtns.mean()*100}))
     
     

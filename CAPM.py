@@ -10,7 +10,9 @@ from dateutil.relativedelta import relativedelta as rdel
 
 from QueryDB import Query_DB
 
+st.set_page_config(layout='wide')
 country = st.selectbox('Choose a market', ['India', 'US [Work in Progress]'])
+
 
 if country == 'India':
     col1, col2 = st.columns(2)
@@ -71,8 +73,14 @@ if country == 'India':
     ytms = np.array(Query_DB(starting_date))
     Rf = ytms.mean()
 
-    expected_return = Rf + beta*(nifty_rtns.mean()*100-Rf)
+    nifty_10_yrs = yf.Ticker('^NSEI').history('10y')
+
+    Rm = (nifty_10_yrs['Close'].pct_change().resample('Y').apply(lambda x: (x + 1).prod() - 1)).mean()
+
+    st.write(Rm)
+
+    expected_return = Rf + beta*(Rm*100-Rf)
     
-    st.write(pd.DataFrame({'Expected Return': expected_return, 'Mean of the stock return': target_stock_rtns.mean()*100, 'Risk free rate used': Rf, 'Beta of the stock': beta, 'Expected Market Return': nifty_rtns.mean()*100}))
+    st.write(pd.DataFrame({'Expected Return': expected_return, 'Mean of the stock return': target_stock_rtns.mean()*100, 'Risk free rate used': Rf, 'Beta of the stock': beta, 'Expected Market Return': Rm}, index=[common_name_of_stock]), use_container_width=True)
     
     

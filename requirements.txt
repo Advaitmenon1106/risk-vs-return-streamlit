@@ -2,5 +2,5 @@ numpy
 pandas
 matplotlib
 yfinance
-pscyopg2
+psycopg2-binary
 scikit-learn

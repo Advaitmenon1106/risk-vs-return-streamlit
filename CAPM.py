@@ -41,7 +41,7 @@ if country == 'India':
         elif 'year' in freq_name:
             starting_date = dt.today()-rdel(years=no_of_periods)
         
-        starting_date = starting_date.date()
+        starting_date = starting_date.date().strftime('%d-%m-%Y')
 
     target_ticker = [key for key, val in names_mapped.items() if val==common_name_of_stock][0]
 

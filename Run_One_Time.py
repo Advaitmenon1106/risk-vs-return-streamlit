@@ -16,8 +16,8 @@ tbill_db = client['tbill_data']
 indian_tbill_data = tbill_db['indian_tbill_data']
 
 df = pd.read_csv('./TBill-10Y.csv')
+df['Date'] = pd.to_datetime(df['Date'], format="%d-%m-%Y")
 df.set_index('Date', inplace=True)
-print(df)
 
 observations = []
 

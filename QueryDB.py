@@ -1,18 +1,26 @@
-import psycopg2 as psg
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
 import streamlit as st
+import datetime as dt
 
 def Query_DB(date):
-    conn = psg.connect(database='indian_tbill_data', user=st.secrets['db_username'], password=st.secrets['db_password'])
-    cur = conn.cursor()
-    cur.execute("""SELECT yield 
-                      FROM tbill_data 
-                      WHERE tbill_data.date BETWEEN %s AND now() 
-                      ORDER BY date""", (date,))
+    starting_date = dt.datetime.strptime(date, '%d-%m-%Y')
+    uri = f"mongodb+srv://{st.secrets['mongo_username']}:{st.secrets['mongo_pw']}@cluster0.xhu6g0i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    client = MongoClient(uri, server_api=ServerApi('1'))
 
+    try:
+        client.admin.command('ping')
+    except Exception as e:
+        st.write(e)
+    
+    tbill_db = client['tbill_data']
+    indian_tbill_data = tbill_db['indian_tbill_data']
+    query = {"Date":{"$gte":starting_date}}
+
+    res = indian_tbill_data.find(query)
     yields = []
-    for res in cur.fetchall():
-        yields.append(float(res[0]))
 
-    conn.close()
+    for doc in res:
+        yields.append(doc['Yield'])
 
     return yields

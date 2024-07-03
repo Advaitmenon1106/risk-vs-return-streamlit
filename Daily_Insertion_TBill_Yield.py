@@ -8,4 +8,5 @@ with conn:
     with conn.cursor() as curs:
         vals = get_todays_rf()
         curs.execute('INSERT INTO tbill_data (date, yield) VALUES (%s, %s)', vals)
-        conn.close()
+        
+conn.close()

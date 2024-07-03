@@ -3,6 +3,7 @@ import re
 import numpy as np
 import pandas as pd
 import yfinance as yf
+import sklearn
 from sklearn.linear_model import LinearRegression
 from datetime import timedelta as tdel, datetime as dt
 from dateutil.relativedelta import relativedelta as rdel

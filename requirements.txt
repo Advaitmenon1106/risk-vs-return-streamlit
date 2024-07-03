@@ -4,3 +4,4 @@ matplotlib
 yfinance
 psycopg2-binary
 scikit-learn
+sqlalchemy

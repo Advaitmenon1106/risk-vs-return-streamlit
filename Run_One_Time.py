@@ -1,6 +1,7 @@
 import psycopg2 as psg
 import pandas as pd
-conn = psg.connect('dbname = indian_tbill_data', user='postgres', password='supes@123')
+import streamlit as st
+conn = psg.connect('dbname = indian_tbill_data', user=st.secrets['db_username'], password=st.secrets['db_password'])
 
 with conn:
     with conn.cursor() as curs:

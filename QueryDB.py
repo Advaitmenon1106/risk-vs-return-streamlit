@@ -1,7 +1,8 @@
 import psycopg2 as psg
+import streamlit as st
 
 def Query_DB(date):
-    conn = psg.connect(database='indian_tbill_data', user='postgres', password='supes@123')
+    conn = psg.connect(database='indian_tbill_data', user=st.secrets['db_username'], password=st.secrets['db_password'])
     cur = conn.cursor()
     cur.execute("""SELECT yield 
                       FROM tbill_data 

@@ -1,8 +1,9 @@
 import psycopg2 as psg
 import pandas as pd
+import streamlit as st
 
 from Daily_TBill_Scraping import get_todays_rf
-conn = psg.connect('dbname = indian_tbill_data', user='postgres', password='supes@123')
+conn = psg.connect('dbname = indian_tbill_data', user=st.secrets['db_username'], password=st.secrets['db_password'])
 
 with conn:
     with conn.cursor() as curs:

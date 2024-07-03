@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 
 from Daily_TBill_Scraping import get_todays_rf
-conn = psg.connect('dbname = indian_tbill_data', user=st.secrets['db_username'], password=st.secrets['db_password'])
+conn = psg.connect(dbname= st.secrets['db_name'], user=st.secrets['db_username'], password=st.secrets['db_password'])
 
 with conn:
     with conn.cursor() as curs:

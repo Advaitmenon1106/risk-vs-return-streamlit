@@ -77,8 +77,6 @@ if country == 'India':
 
     Rm = (nifty_10_yrs['Close'].pct_change().resample('Y').apply(lambda x: (x + 1).prod() - 1)).mean()
 
-    st.write(Rm)
-
     expected_return = Rf + beta*(Rm*100-Rf)
     
     st.write(pd.DataFrame({'Expected Return': expected_return, 'Mean of the stock return': target_stock_rtns.mean()*100, 'Risk free rate used': Rf, 'Beta of the stock': beta, 'Expected Market Return': Rm}, index=[common_name_of_stock]), use_container_width=True)

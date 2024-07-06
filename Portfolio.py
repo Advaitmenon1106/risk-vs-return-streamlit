@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit as st
 import yfinance as yf
 
-
 def list_potential_portfolios():
     indian_tickers = pd.read_csv('./IndianTickers.csv')
     portfolios_list = []
@@ -17,14 +16,27 @@ def list_potential_portfolios():
 
     for i in range(0, len(symbols)):
         sym1 = symbols[i]
-        rtns1 = yf.Ticker(sym1).history('2y')['Close'].pct_change().to_numpy()
-        for j in range(0, len(symbols)):
+        stock1 = yf.Ticker(sym1).history('2y')
+
+        if stock1.shape[0] == 0:
+                continue
+        
+        for j in range(i+1, len(symbols)):
             sym2 = symbols[j]
-            rtns2 = yf.Ticker(sym2).history('2y')['Close'].pct_change().to_numpy()
+            stock2 = yf.Ticker(sym2).history('2y')
+
+            if stock2.shape[0] == 0:
+                continue
+
+            common_dates = stock1.index.intersection(stock2.index)
+
+            rtns1 = stock1['Close'].loc[common_dates].pct_change().dropna().to_numpy()
+            rtns2 = stock2['Close'].loc[common_dates].pct_change().dropna().to_numpy()
+
             corr = np.corrcoef(rtns1, rtns2)
-            st.write(corr)
-            if corr<0:
+            if corr[0, 1]<0:
                 portfolio = f'{sym1} - {sym2}'
+                st.write(portfolio)
                 portfolios_list.append(portfolio)
     
     st.selectbox('Choose a portfolio', portfolios_list)

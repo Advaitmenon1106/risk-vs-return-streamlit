@@ -16,7 +16,7 @@ for i in range(0, len(symbols)):
     sym = symbols[i]
     stock = yf.Ticker(sym).history('2y')
 
-    if stock.shape[0] != 0:
+    if stock.shape[0] == 0:
         indian_tickers.drop(sym, inplace=True)
 
 indian_tickers.to_csv('./Output.csv')

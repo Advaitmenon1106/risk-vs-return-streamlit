@@ -4,7 +4,6 @@ import streamlit as st
 import yfinance as yf
 
 def list_potential_portfolios():
-    indian_tickers = pd.read_csv('./IndianTickers.csv')
     portfolios_list = []
 
     tickers = pd.read_csv('./IndianTickers.csv')
@@ -17,16 +16,10 @@ def list_potential_portfolios():
     for i in range(0, len(symbols)):
         sym1 = symbols[i]
         stock1 = yf.Ticker(sym1).history('2y')
-
-        if stock1.shape[0] == 0:
-                continue
         
         for j in range(i+1, len(symbols)):
             sym2 = symbols[j]
             stock2 = yf.Ticker(sym2).history('2y')
-
-            if stock2.shape[0] == 0:
-                continue
 
             common_dates = stock1.index.intersection(stock2.index)
 
@@ -40,4 +33,3 @@ def list_potential_portfolios():
                 portfolios_list.append(portfolio)
     
     st.selectbox('Choose a portfolio', portfolios_list)
-

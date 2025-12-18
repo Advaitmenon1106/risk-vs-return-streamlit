@@ -8,6 +8,7 @@ from sklearn.linear_model import LinearRegression
 from datetime import timedelta as tdel, datetime as dt
 from dateutil.relativedelta import relativedelta as rdel
 from QueryDB import Query_DB
+from bson.decimal128 import Decimal128
 
 def implement_CAPM():
     country = st.selectbox('Choose a market', ['India', 'US [Work in Progress]'])
@@ -44,16 +45,20 @@ def implement_CAPM():
         target_ticker = [key for key, val in names_mapped.items() if val==common_name_of_stock][0]
 
         try:
-            target_stock_data = yf.Ticker(target_ticker).history(freq_code)
+            target_stock_data = yf.Ticker(target_ticker).history(period=freq_code, interval="1d", auto_adjust=False)
             if target_stock_data.shape[0] == 0:
-                st.write('Ticker not available on Yahoo Finance. Apologies for the inconvenience!')
+                st.write(f'Ticker not available on Yahoo Finance. Apologies for the inconvenience!')
             else: 
                 target_stock_data = yf.Ticker(target_ticker).history(freq_code)
 
-        except:
-            st.write('Ticker not available on Yahoo Finance or you may not have a stable internet connection. Apologies for the inconvenience!')
+        except Exception as e:
+            st.write(f'Ticker not available on Yahoo Finance or you may not have a stable internet connection. Apologies for the inconvenience! Error: {e}')
         
-        nifty = yf.Ticker('^NSEI').history(freq_code)
+        nifty = yf.Ticker('^NSEI').history(
+            period=freq_code,
+            interval="1d",
+            auto_adjust=False
+        )
 
         common_dates = nifty.index.intersection(target_stock_data.index)
         
@@ -68,7 +73,18 @@ def implement_CAPM():
 
         model = LinearRegression(fit_intercept=False).fit(X=nifty_rtns.reshape(-1, 1), y=target_stock_rtns)
         beta = model.coef_
-        ytms = np.array(Query_DB(starting_date))
+
+        ytms_raw = Query_DB(starting_date)
+        
+        
+        ytms = np.array(
+            [
+                float(x.to_decimal()) if isinstance(x, Decimal128) else float(x)
+                for x in ytms_raw
+            ],
+            dtype=float
+        )
+
         Rf = ytms.mean()
 
         nifty_10_yrs = yf.Ticker('^NSEI').history('10y')
